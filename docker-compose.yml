@@ -1,0 +1,24 @@
+services:
+  app:
+    container_name: transit-flow-visualization-app
+    image: transit-flow-visualization-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    # depends_on:
+    #   -
+    env_file:
+      - .env
+    # networks:
+    #   - 
+    environment:
+      - SPRING_PROFILES_ACTIVE=${ACTIVE_PROFILE:-dev}
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
