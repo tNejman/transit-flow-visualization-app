@@ -30,7 +30,7 @@ jobs:
 
       - name: Test Docker Image Build
         run: |
-          docker compose up --build --abort-on-container-exit -d
+          docker compose up --build -d
           sleep 15
           docker compose ps
           docker compose down
