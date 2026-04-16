@@ -29,4 +29,8 @@ jobs:
         run: ./mvnw clean test
 
       - name: Test Docker Image Build
-        run: docker compose up --build --abort-on-container-exit
+        run: |
+          docker compose up --build --abort-on-container-exit -d
+          sleep 15
+          docker compose ps
+          docker compose down
