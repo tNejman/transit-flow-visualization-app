@@ -12,6 +12,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create dummy .env file
+        run: printf "DB_ADDRESS=\nDB_PORT=\nDB_NAME=\nDB_USER=\nDB_PASS=\nACTIVE_PROFILE=dev" > .env
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
