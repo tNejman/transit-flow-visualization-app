@@ -29,7 +29,7 @@ public class Station {
     private String name;
 
     // @Column(columnDefinition = "geography", unique = true)
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private Point location;
 
     protected Station() {
