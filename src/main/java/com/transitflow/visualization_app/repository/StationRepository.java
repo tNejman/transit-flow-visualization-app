@@ -9,4 +9,5 @@ import com.transitflow.visualization_app.model.Station;
 
 public interface StationRepository extends JpaRepository<Station, UUID> {
     List<Station> findAll();
+    Station findByName(String name);
 }
