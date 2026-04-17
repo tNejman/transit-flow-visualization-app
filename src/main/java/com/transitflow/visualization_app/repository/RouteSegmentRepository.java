@@ -9,6 +9,6 @@ import com.transitflow.visualization_app.model.RouteSegment;
 
 public interface RouteSegmentRepository extends JpaRepository<RouteSegment, UUID> {
     List<RouteSegment> findAll();
-    RouteSegment findByStartStationIdAndEndStationId(UUID startStationId, UUID endStationId);
-    List<RouteSegment> findByStartStationOrEndStation(Station startStation, Station endStation);
+    RouteSegment findByStationToAndStationFrom(UUID stationTo, UUID stationFrom);
+    List<RouteSegment> findByStationToOrStationFrom(UUID stationTo, UUID stationFrom);
 }
