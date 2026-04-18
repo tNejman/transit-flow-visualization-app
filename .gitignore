@@ -31,6 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+transit-flow-visualization-app.code-workspace
 
 ### Miscellaneous ###
 .env
