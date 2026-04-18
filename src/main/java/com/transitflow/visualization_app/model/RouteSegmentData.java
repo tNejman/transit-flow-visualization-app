@@ -30,7 +30,10 @@ public class RouteSegmentData {
     private RouteSegment routeSegment;
 
     @Column(nullable = false)
-    private int occupancy;
+    private int occupancyFromTo;
+
+    @Column(nullable = false)
+    private int occupancyToFrom;
 
     @Column(nullable = false)
     private Instant snapshotTime;

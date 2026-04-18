@@ -35,10 +35,12 @@ public class RouteSegment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id_from", nullable = false)
+    // StationId from should always be smaller than stationId to, to avoid duplicates in the database
     private Station stationFrom;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "station_id_to", nullable = false)
+    // StationId To should always be larger than stationId from, to avoid duplicates in the database
     private Station stationTo;
 
     protected RouteSegment() {
@@ -46,6 +48,10 @@ public class RouteSegment {
     }
 
     public RouteSegment(Station stationFrom, Station stationTo) {
+        if (stationFrom.getId().compareTo(stationTo.getId()) > 0) {
+            this.stationFrom = stationTo;
+            this.stationTo = stationFrom;
+        }
         this.stationFrom = stationFrom;
         this.stationTo = stationTo;
     }

@@ -13,4 +13,6 @@ public interface RouteSegmentDataRepository extends JpaRepository<RouteSegmentDa
     List<RouteSegmentData> findByRouteSegmentId(UUID routeSegmentId);
     List<RouteSegmentData> findByRouteSegmentIdAndEventTimeAfter(UUID routeSegmentId, LocalDate eventTime);
     List<RouteSegmentData> findByRouteSegmentIdAndEventTimeBefore(UUID routeSegmentId, LocalDate eventTime);
+    List<RouteSegmentData> findByRouteSegmentIdAndEventTimeBetween(UUID routeSegmentId, LocalDate startDate, LocalDate endDate);
+    List<RouteSegmentData> findByEventTime(LocalDate eventTime);
 }
