@@ -51,8 +51,9 @@ public class RouteSegment {
         if (stationFrom.getId().compareTo(stationTo.getId()) > 0) {
             this.stationFrom = stationTo;
             this.stationTo = stationFrom;
+        } else {
+            this.stationFrom = stationFrom;
+            this.stationTo = stationTo;
         }
-        this.stationFrom = stationFrom;
-        this.stationTo = stationTo;
     }
 }
