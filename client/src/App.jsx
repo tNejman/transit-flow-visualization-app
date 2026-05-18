@@ -4,7 +4,7 @@ import PolandMap from './components/PolandMap.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import DetailsPanel from './components/DetailsPanel.jsx'
 import ExportDialog from './components/ExportDialog.jsx'
-import * as api from './api/mockApi.js'
+import * as api from './api/Api.js'
 
 function todayISO() {
   const d = new Date()
