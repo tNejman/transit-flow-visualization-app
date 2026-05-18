@@ -16,7 +16,7 @@ function StationDetails({ station, network, exported, onToggleExport, onClose })
         <dd className="mono">{station.id}</dd>
         <dt>Współrzędne</dt>
         <dd className="mono">
-          {station.location.lat.toFixed(4)}, {station.location.lng.toFixed(4)}
+          {station.latitude.toFixed(4)}, {station.longitude.toFixed(4)}
         </dd>
         <dt>Odcinki</dt>
         <dd>{segmentsTouched}</dd>

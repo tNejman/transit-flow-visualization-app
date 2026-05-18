@@ -28,16 +28,18 @@ public class Station {
     @EqualsAndHashCode.Include
     private String name;
 
-    // @Column(columnDefinition = "geography", unique = true)
     @Column(nullable = false)
-    private Point location;
+    private double latitude;  // Szerokość geograficzna (Y)
 
+    @Column(nullable = false)
+    private double longitude; // Długość geograficzna (X)
     protected Station() {
 
     }
 
     public Station(String name, Point location) {
         this.name = name;
-        this.location = location;
+        this.latitude = location.getY();
+        this.longitude = location.getX();
     }
 }
