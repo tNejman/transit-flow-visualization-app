@@ -57,7 +57,7 @@ export default function PolandMap({
         return (
           <Polyline
             key={data.routeSegment.id}
-            positions={[[from.location.lat, from.location.lng], [to.location.lat, to.location.lng]]}
+            positions={[[from.latitude, from.longitude], [to.latitude, to.longitude]]}
             pathOptions={{
               ...base,
               weight: isSelected ? base.weight + 4 : base.weight,
@@ -83,7 +83,7 @@ export default function PolandMap({
         return (
           <CircleMarker
             key={s.id}
-            center={[s.location.lat, s.location.lng]}
+            center={[s.latitude, s.longitude]}
             radius={isSelected ? 9 : 6}
             pathOptions={{
               color: '#0f172a',
