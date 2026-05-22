@@ -1,9 +1,11 @@
 import os
 import ssl
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import sessionmaker, selectinload
+from typing import List
 
+from Objects import RouteSegment, RouteSegmentData
 class DBConnector:
     def create_mysql_session(self):
         load_dotenv()
@@ -22,11 +24,27 @@ class DBConnector:
                 "cert_reqs": ssl.CERT_NONE
             }
         })
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        return SessionLocal()
+        return sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
     def create_local_session(self, filename: str):
         engine = create_engine(f"sqlite:///{os.path.abspath(filename)}", echo=True)
         # SessionLocal = sessionmaker(bind=engine)
         # return SessionLocal()
         return sessionmaker(bind=engine)
+    
+    def select_all_route_segments(self, sessionmaker: sessionmaker) -> List[RouteSegment]:
+        with sessionmaker() as session:
+            stmt = select(RouteSegment).options(
+                selectinload(RouteSegment.station_from),
+                selectinload(RouteSegment.station_to)
+            )
+            
+            route_segments = session.scalars(stmt).all()
+            return route_segments
+            
+        return []
+    
+    def insert_route_segment_data(self, sessionmaker: sessionmaker, route_segment_data: RouteSegmentData) -> None:
+        with sessionmaker() as session:
+            session.add(route_segment_data)
+            session.commit()
