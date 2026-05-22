@@ -29,16 +29,9 @@ class RouteOccupancyScraper:
 
         with Stealth().use_sync(sync_playwright()) as p:
             browser = p.chromium.launch(headless=True, args=["--disable-blink-features=AutomationControlled"])
-            # context = browser.new_context(
-            #     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            #     viewport={"width": 1920, "height": 1080}
-            # )
             context = browser.new_context()
             context.tracing.start(screenshots=True, snapshots=True, sources=True)
             page = context.new_page()
-            # page = context.new_page()
-            # stealth = Stealth()
-            # asyncio.run(stealth.apply_stealth_async(context))
 
             try:
                 current_date_str = datetime.today().strftime('%Y-%m-%d')
@@ -102,19 +95,17 @@ class RouteOccupancyScraper:
         buttons = soup.find_all('button', class_='seat-overlay-button')
         
         for button in buttons:
-            aria_label = button.get('aria-label', '')
+            aria_label = button.get('aria-label', '').lower()
             
-            if 'Wolne' in aria_label:
+            if 'wolne' in aria_label:
                 free_seats += 1
-            elif 'Niedostepne' in aria_label:
+            elif 'niedostepne' in aria_label:
                 taken_seats += 1
                 
         extracted_data = {
             'free_seats': free_seats,
             'taken_seats': taken_seats,
-            'occupancy_from_to': 0,
-            'occupancy_to_from': 0,
-            'event_time': 0        
+            'event_time': 0        # TODO add event time
         }
         
         return extracted_data

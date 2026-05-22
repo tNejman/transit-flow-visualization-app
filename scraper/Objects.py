@@ -16,9 +16,17 @@ class Station(Base):
     longitude = Column(Float, nullable=False)
     
     def __init__(self, **kwargs):
-        if 'id' not in kwargs:
-            kwargs['id'] = uuid.uuid4()
+        # if 'id' not in kwargs:
+        #     kwargs['id'] = uuid.uuid4()
         super().__init__(**kwargs)
+    
+    def __str__(self) -> str:
+        return (
+            f"<Station(id: {self.id}, "
+            f"name: {self.name}, "
+            f"latitude: {self.latitude}, "
+            f"longitude: {self.longitude}>"
+        )
     
 class RouteSegment(Base):
     __tablename__ = 'Route_Segments'
@@ -42,6 +50,15 @@ class RouteSegment(Base):
             else:
                 self.station_from = station_from
                 self.station_to = station_to
+        else:
+            raise Exception("Missing station in c-tor")
+        
+    def __str__(self) -> str:
+        return (
+            f"<RouteSegment(id: {self.id}, "
+            f"station_from: {self.station_from.name}, "
+            f"station_to: {self.station_to.name})>"
+        )
 
 class RouteSegmentData(Base):
     __tablename__ = 'Route_Segment_Data'
@@ -53,3 +70,12 @@ class RouteSegmentData(Base):
     occupancy_to_from = Column(Integer, nullable=False)
     snapshot_time = Column(DateTime(timezone=True), nullable=False)
     event_time = Column(Date, nullable=False)
+    
+    def __str__(self) -> str:
+        return (
+            f"<RouteSegmentData(id: {id}, "
+            f"from: {self.route_segment.station_from.name}, "
+            f"to: {self.route_segment.station_from.name}, "
+            f"occ_A: {self.occupancy_from_to}↕{self.occupancy_to_from}, "
+            f"snapshot_time: {self.snapshot_time:%Y-%m-%d %H:%M:S}"
+            f"event_time: {self.event_time:%Y-%m-%d}]>")

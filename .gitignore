@@ -35,3 +35,9 @@ transit-flow-visualization-app.code-workspace
 
 ### Miscellaneous ###
 .env
+venv/
+.venv/
+*.png
+*.old
+__pycache__/
+.mypy_cache/
