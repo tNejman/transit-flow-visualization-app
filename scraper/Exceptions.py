@@ -1,4 +1,4 @@
-from Scraper_all_cars import Class
+from Scraper import Class
 
 class WebsiteUnderMaintenanceException(Exception):
     def __init__(self, *args: object) -> None:
