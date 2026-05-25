@@ -1,10 +1,12 @@
 
 export const OCCUPANCY_BANDS = [
-  { min: 0,  max: 25,  color: '#22c55e', weight: 3, label: 'Niska (0–25%)' },
-  { min: 25, max: 50,  color: '#eab308', weight: 5, label: 'Średnia (25–50%)' },
-  { min: 50, max: 75,  color: '#f97316', weight: 7, label: 'Wysoka (50–75%)' },
-  { min: 75, max: 101, color: '#ef4444', weight: 9, label: 'Bardzo wysoka (75–100%)' },
-]
+  { min: 0,    max: 500,   color: '#7a8073', weight: 3, label: '0–500' },
+  { min: 500,  max: 1000,  color: '#22c55e', weight: 4, label: '500–1000' },
+  { min: 1000, max: 1500,  color: '#eab308', weight: 5, label: '1000–1500' },
+  { min: 1500, max: 2000,  color: '#f97316', weight: 6, label: '1500–2000' },
+  { min: 2000, max: 2500,  color: '#ef4444', weight: 7, label: '2000–2500' },
+  { min: 2500, max: Infinity, color: '#7a0404', weight: 8, label: '2500+' }
+];
 
 export const NO_DATA_COLOR = '#6b7280'
 
