@@ -1,6 +1,6 @@
 
 export const OCCUPANCY_BANDS = [
-  { min: 0,    max: 500,   color: '#7a8073', weight: 3, label: '0–500' },
+  { min: 0,    max: 500,   color: '#6a8063', weight: 3, label: '0–500' },
   { min: 500,  max: 1000,  color: '#22c55e', weight: 4, label: '500–1000' },
   { min: 1000, max: 1500,  color: '#eab308', weight: 5, label: '1000–1500' },
   { min: 1500, max: 2000,  color: '#f97316', weight: 6, label: '1500–2000' },
@@ -8,7 +8,7 @@ export const OCCUPANCY_BANDS = [
   { min: 2500, max: Infinity, color: '#7a0404', weight: 8, label: '2500+' }
 ];
 
-export const NO_DATA_COLOR = '#6b7280'
+export const NO_DATA_COLOR = '#404040'
 
 export function occupancyBand(pct) {
   return OCCUPANCY_BANDS.find((b) => pct >= b.min && pct < b.max) ?? OCCUPANCY_BANDS[OCCUPANCY_BANDS.length - 1]
