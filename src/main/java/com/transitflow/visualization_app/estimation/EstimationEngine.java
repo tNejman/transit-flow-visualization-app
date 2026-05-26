@@ -59,6 +59,7 @@ public class EstimationEngine {
                 avgOccupancyToFrom,
                 Instant.now(),
                 requestedDate);
+        estimate.setEstimated(true);
 
         return Optional.of(estimate);
     }
