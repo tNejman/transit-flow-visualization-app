@@ -19,6 +19,14 @@ export function segmentAverage(data) {
 }
 
 export function segmentStyle(data) {
+  if (data.noData) {
+    return {
+      color: NO_DATA_COLOR,
+      weight: 3,
+      opacity: 0.75,
+    }
+  }
+
   const avg = segmentAverage(data)
   const band = occupancyBand(avg)
   return {

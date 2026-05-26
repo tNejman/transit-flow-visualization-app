@@ -70,8 +70,14 @@ export default function PolandMap({
             <Tooltip sticky>
               <div className="map-tooltip">
                 <b>{from.name} ↔ {to.name}</b>
-                <div>Średnia zajętość: <b>{segmentAverage(data)}%</b></div>
-                {data.estimated && <div className="tt-warn">Dane estymowane</div>}
+                {data.noData ? (
+                  <div className="tt-warn">Brak danych</div>
+                ) : (
+                  <>
+                    <div>Średnia zajętość: <b>{segmentAverage(data)}</b></div>
+                    {data.estimated && <div className="tt-warn">Dane estymowane</div>}
+                  </>
+                )}
               </div>
             </Tooltip>
           </Polyline>
