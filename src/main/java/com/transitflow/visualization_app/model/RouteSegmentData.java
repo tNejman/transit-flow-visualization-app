@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 
 @Getter
@@ -40,6 +41,9 @@ public class RouteSegmentData {
     @Column(nullable = false)
     private LocalDate eventTime;
 
+    @Transient
+    private boolean estimated = false;
+
     protected RouteSegmentData() {
 
     }
@@ -55,5 +59,9 @@ public class RouteSegmentData {
         this.occupancyToFrom = occupancyToFrom;
         this.snapshotTime = snapshotTime;
         this.eventTime = eventTime;
+    }
+
+    public void setEstimated(boolean estimated) {
+        this.estimated = estimated;
     }
 }
