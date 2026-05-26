@@ -56,11 +56,11 @@ function SegmentDetails({ data, exported, onToggleExport, onClose }) {
         <dt>Data</dt>
         <dd>{data.eventTime}</dd>
         <dt>Średnie obciążenie</dt>
-        <dd style={{ color: band.color, fontWeight: 600 }}>{avg}% — {band.label}</dd>
+        <dd style={{ color: band.color, fontWeight: 600 }}>{avg} — {band.label}</dd>
         <dt>{stationFrom.name} → {stationTo.name}</dt>
-        <dd>{data.occupancyFromTo}%</dd>
+        <dd>{data.occupancyFromTo}</dd>
         <dt>{stationTo.name} → {stationFrom.name}</dt>
-        <dd>{data.occupancyToFrom}%</dd>
+        <dd>{data.occupancyToFrom}</dd>
         <dt>Snapshot</dt>
         <dd className="mono">{data.snapshotTime}</dd>
         <dt>Źródło</dt>

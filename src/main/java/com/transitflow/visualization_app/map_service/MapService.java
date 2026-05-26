@@ -51,15 +51,26 @@ public class MapService {
                 .map(data -> data.getRouteSegment().getId())
                 .collect(java.util.stream.Collectors.toSet());
 
-        List<RouteSegmentData> estimatedData = routeSegmentRepository.findAll().stream()
-                .filter(segment -> !exactSegmentIds.contains(segment.getId()))
-                .map(segment -> estimationEngine.estimateForSegment(segment.getId(), date))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-
         List<RouteSegmentData> merged = new ArrayList<>(exactData);
-        merged.addAll(estimatedData);
+
+        routeSegmentRepository.findAll().stream()
+                .filter(segment -> !exactSegmentIds.contains(segment.getId()))
+                .forEach(segment -> {
+                    Optional<RouteSegmentData> maybeEstimate = estimationEngine.estimateForSegment(segment.getId(), date);
+                    if (maybeEstimate.isPresent()) {
+                        merged.add(maybeEstimate.get());
+                    } else {
+                        RouteSegmentData noDataSegment = new RouteSegmentData(
+                                segment,
+                                0,
+                                0,
+                                java.time.Instant.now(),
+                                date);
+                        noDataSegment.setNoData(true);
+                        merged.add(noDataSegment);
+                    }
+                });
+
         return merged;
     }
 

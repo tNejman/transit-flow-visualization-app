@@ -44,6 +44,9 @@ public class RouteSegmentData {
     @Transient
     private boolean estimated = false;
 
+    @Transient
+    private boolean noData = false;
+
     protected RouteSegmentData() {
 
     }
@@ -63,5 +66,13 @@ public class RouteSegmentData {
 
     public void setEstimated(boolean estimated) {
         this.estimated = estimated;
+    }
+
+    public boolean isNoData() {
+        return noData;
+    }
+
+    public void setNoData(boolean noData) {
+        this.noData = noData;
     }
 }

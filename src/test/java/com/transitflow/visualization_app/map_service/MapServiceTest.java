@@ -24,6 +24,7 @@ import com.transitflow.visualization_app.repository.StationRepository;
 @ExtendWith(MockitoExtension.class)
 class MapServiceTest {
 
+    @SuppressWarnings("unused")
     @Mock
     private StationRepository stationRepository;
 
@@ -69,9 +70,29 @@ class MapServiceTest {
     }
 
     @Test
+    void returnsNoDataSegmentWhenNoHistoryExists() {
+        UUID segmentId = UUID.fromString("00000000-0000-0000-0000-000000000003");
+        LocalDate requestedDate = LocalDate.of(2026, 5, 18);
+
+        RouteSegment routeSegment = org.mockito.Mockito.mock(RouteSegment.class);
+        when(routeSegment.getId()).thenReturn(segmentId);
+
+        when(routeSegmentDataRepository.findByEventTime(requestedDate)).thenReturn(List.of());
+        when(routeSegmentRepository.findAll()).thenReturn(List.of(routeSegment));
+        when(estimationEngine.estimateForSegment(segmentId, requestedDate)).thenReturn(Optional.empty());
+
+        List<RouteSegmentData> result = mapService.getNetworkByDate(requestedDate);
+
+        assertEquals(1, result.size());
+        assertEquals(0, result.get(0).getOccupancyFromTo());
+        assertEquals(0, result.get(0).getOccupancyToFrom());
+        assertEquals(requestedDate, result.get(0).getEventTime());
+        assertEquals(true, result.get(0).isNoData());
+    }
+
+    @Test
     void reportsIncompleteWhenAtLeastOneSegmentIsEstimated() {
         UUID exactSegmentId = UUID.fromString("00000000-0000-0000-0000-000000000001");
-        UUID estimatedSegmentId = UUID.fromString("00000000-0000-0000-0000-000000000002");
         LocalDate requestedDate = LocalDate.of(2026, 5, 18);
 
         RouteSegment exactSegment = org.mockito.Mockito.mock(RouteSegment.class);
