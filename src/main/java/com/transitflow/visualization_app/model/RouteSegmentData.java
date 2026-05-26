@@ -12,7 +12,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
@@ -43,5 +42,18 @@ public class RouteSegmentData {
 
     protected RouteSegmentData() {
 
+    }
+
+    public RouteSegmentData(
+            RouteSegment routeSegment,
+            int occupancyFromTo,
+            int occupancyToFrom,
+            Instant snapshotTime,
+            LocalDate eventTime) {
+        this.routeSegment = routeSegment;
+        this.occupancyFromTo = occupancyFromTo;
+        this.occupancyToFrom = occupancyToFrom;
+        this.snapshotTime = snapshotTime;
+        this.eventTime = eventTime;
     }
 }
