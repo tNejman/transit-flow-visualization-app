@@ -2,13 +2,14 @@ package com.transitflow.visualization_app.map_service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.transitflow.visualization_app.estimation.EstimationEngine;
 import com.transitflow.visualization_app.model.RouteSegment;
 import com.transitflow.visualization_app.model.RouteSegmentData;
 import com.transitflow.visualization_app.model.Station;
@@ -22,14 +23,17 @@ public class MapService {
     private final StationRepository stationRepository;
     private final RouteSegmentRepository routeSegmentRepository;
     private final RouteSegmentDataRepository routeSegmentDataRepository;
+    private final EstimationEngine estimationEngine;
 
     // Wstrzykiwanie repozytoriów przez konstruktor
     public MapService(StationRepository stationRepository,
                       RouteSegmentRepository routeSegmentRepository,
-                      RouteSegmentDataRepository routeSegmentDataRepository) {
+                      RouteSegmentDataRepository routeSegmentDataRepository,
+                      EstimationEngine estimationEngine) {
         this.stationRepository = stationRepository;
         this.routeSegmentRepository = routeSegmentRepository;
         this.routeSegmentDataRepository = routeSegmentDataRepository;
+        this.estimationEngine = estimationEngine;
     }
 
     public List<Station> getAllNodes() {
@@ -42,7 +46,21 @@ public class MapService {
     }
 
     public List<RouteSegmentData> getNetworkByDate(LocalDate date) {
-        return routeSegmentDataRepository.findByEventTime(date);
+        List<RouteSegmentData> exactData = routeSegmentDataRepository.findByEventTime(date);
+        var exactSegmentIds = exactData.stream()
+                .map(data -> data.getRouteSegment().getId())
+                .collect(java.util.stream.Collectors.toSet());
+
+        List<RouteSegmentData> estimatedData = routeSegmentRepository.findAll().stream()
+                .filter(segment -> !exactSegmentIds.contains(segment.getId()))
+                .map(segment -> estimationEngine.estimateForSegment(segment.getId(), date))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+
+        List<RouteSegmentData> merged = new ArrayList<>(exactData);
+        merged.addAll(estimatedData);
+        return merged;
     }
 
     public List<RouteSegmentData> getSegmentsByNodeAndDate(UUID nodeId, LocalDate date) {
@@ -81,10 +99,11 @@ public class MapService {
 
     public boolean checkDataCompleteness(LocalDate date) {
         List<RouteSegmentData> dataForDay = routeSegmentDataRepository.findByEventTime(date);
-        
-        if (dataForDay.isEmpty()) {
-            return false;
-        }
-        return true;
+        var exactSegmentIds = dataForDay.stream()
+                .map(data -> data.getRouteSegment().getId())
+                .collect(java.util.stream.Collectors.toSet());
+
+        long totalSegments = routeSegmentRepository.count();
+        return exactSegmentIds.size() >= totalSegments;
     }
 }

@@ -64,4 +64,9 @@ INSERT INTO Route_Segments (id, station_id_from, station_id_to) VALUES
 
 -- Dodawanie danych dla odcinka 1 (Warszawa -> Łódź) na dzień 18 maja 2026 r.
 INSERT INTO route_segment_data (id, route_segment_id, occupancy_from_to, occupancy_to_from, snapshot_time, event_time) VALUES
-(RANDOM_UUID(), '00000000-0000-0000-0000-000000000001', 75, 40, '2026-05-18T12:00:00Z', '2026-05-18');
+(RANDOM_UUID(), '00000000-0000-0000-0000-000000000001', 550, 1100, '2026-05-18T12:00:00Z', '2026-05-18');
+
+-- Warszawa-Radom, dane służące do przybliżania
+INSERT INTO route_segment_data (id, route_segment_id, occupancy_from_to, occupancy_to_from, snapshot_time, event_time) VALUES
+('11111111-1111-1111-1111-111111111111', '00000000-0000-0000-0000-000000000002', 1000, 2000, '2026-05-16T10:00:00Z', '2026-05-16'),
+('22222222-2222-2222-2222-222222222222', '00000000-0000-0000-0000-000000000002', 2000, 3000, '2026-05-17T10:00:00Z', '2026-05-17');
