@@ -48,6 +48,7 @@ public class MapService {
     public List<RouteSegmentData> getNetworkByDate(LocalDate date) {
         List<RouteSegmentData> exactData = routeSegmentDataRepository.findByEventTime(date);
         var exactSegmentIds = exactData.stream()
+                .filter(data -> data.getRouteSegment() != null)
                 .map(data -> data.getRouteSegment().getId())
                 .collect(java.util.stream.Collectors.toSet());
 
@@ -75,19 +76,13 @@ public class MapService {
     }
 
     public List<RouteSegmentData> getSegmentsByNodeAndDate(UUID nodeId, LocalDate date) {
-        // Upewniamy się najpierw, czy stacja w ogóle istnieje (żeby rzucić 404 w kontrolerze jeśli nie)
         if (!stationRepository.existsById(nodeId)) {
             throw new NoSuchElementException("Station with ID " + nodeId + " not found");
         }
-
-        // 1. Znajdź wszystkie segmenty infrastruktury podpięte pod tę stację (jako startowa lub końcowa)
         List<RouteSegment> segments = routeSegmentRepository.findByStationToOrStationFrom(nodeId, nodeId);
-        
-        // 2. Zbierz dane (occupancy, etc.) dla tych segmentów z konkretnego dnia
         List<RouteSegmentData> result = new ArrayList<>();
         for (RouteSegment segment : segments) {
             List<RouteSegmentData> dataForSegment = routeSegmentDataRepository.findByRouteSegmentId(segment.getId());
-            // Filtrujemy dane, które odpowiadają wybranej dacie
             for (RouteSegmentData data : dataForSegment) {
                 if (data.getEventTime().equals(date)) {
                     result.add(data);
@@ -98,10 +93,8 @@ public class MapService {
     }
 
     public RouteSegmentData getSegmentDetails(UUID segmentId, LocalDate date) {
-        // Pobieramy dane dla danego segmentu z bazy
         List<RouteSegmentData> dataList = routeSegmentDataRepository.findByRouteSegmentId(segmentId);
         
-        // Szukamy rekordu z pasującą datą
         return dataList.stream()
                 .filter(data -> data.getEventTime().equals(date))
                 .findFirst()
@@ -111,6 +104,7 @@ public class MapService {
     public boolean checkDataCompleteness(LocalDate date) {
         List<RouteSegmentData> dataForDay = routeSegmentDataRepository.findByEventTime(date);
         var exactSegmentIds = dataForDay.stream()
+                .filter(data -> data.getRouteSegment() != null)
                 .map(data -> data.getRouteSegment().getId())
                 .collect(java.util.stream.Collectors.toSet());
 
