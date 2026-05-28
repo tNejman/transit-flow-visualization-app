@@ -2,8 +2,9 @@ from datetime import datetime, date, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload, sessionmaker
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
-from playwright.sync_api import Page, Browser, Locator, BrowserContext, expect
+from playwright.sync_api import Page, Browser, Locator, BrowserContext, expect, ProxySettings
 from playwright_stealth import Stealth
+from curl_cffi import requests
 from typing import Optional, List
 from enum import Enum
 import re
@@ -24,10 +25,14 @@ class RouteOccupancyScraper:
         self.base_url: str = base_url
         self.is_debug: bool = is_debug
         self.scrape_datetime: str = datetime.today().strftime('%Y-%m-%d-%H..%M')
+        self.log_file_name: str = f"{self.scrape_datetime}-logs.txt"
 
     def log(self, mes: str) -> None:
         if self.is_debug:
-            print(f"DEBUG: {mes}")
+            debug_mes = f"DEBUG: {mes}"
+            print(debug_mes)
+            with open(self.log_file_name, "a", encoding="utf-8") as f:
+                        f.write(f"{datetime.today().strftime('%Y-%m-%d-%H..%M')} - {debug_mes}\n")
             
     def debug_screenshot(self, page: Page, title: str, _counter: List[int] = [1]) -> None:
         if self.is_debug:
@@ -45,6 +50,10 @@ class RouteOccupancyScraper:
         event_datetime = parsed_datetime.replace(tzinfo=timezone.utc).date()
         return event_datetime
     
+    def format_station_name(self, station_name: str) -> str:
+        name_split = station_name.split()
+        return f"{name_split[0]} {name_split[1][0]}" if len(name_split) > 1 else name_split[0]
+    
     def goto_connections_page(self, page: Page, station_from_name: str, station_to_name: str) -> None:
         website_under_contr_locator: Locator = page.locator('text=Ten system sprzedaży biletów jest chwilowo niedostępny')
         if website_under_contr_locator.count() > 0 and website_under_contr_locator.is_visible():
@@ -56,12 +65,12 @@ class RouteOccupancyScraper:
         
         station_from_and_in_locator: Locator = page.locator('input[class*="AutocompleateStation_autocompleteStation_input_"]')
         self.log(f"Filling in station from: {station_from_name}")
-        station_from_and_in_locator.first.fill(station_from_name)
+        station_from_and_in_locator.first.fill(self.format_station_name(station_from_name))
         page.locator('span[id="station1"]').first.click()
         self.debug_screenshot(page, "after_filling_in_station_from")
         
         self.log(f"Filling in station to: {station_to_name}")
-        station_from_and_in_locator.nth(1).fill(station_to_name)
+        station_from_and_in_locator.nth(1).fill(self.format_station_name(station_to_name))
         page.locator('span[id="station1"]').first.click()
         self.debug_screenshot(page, "after_filling_in_station_to")
 
@@ -104,11 +113,15 @@ class RouteOccupancyScraper:
         
         self.log("Choosing a seat...")
         self.debug_screenshot(page, "before_choosing_a_seat")
-        page.get_by_role("button", name="Choose a place").first.click()
+        choose_a_place_locator: Locator = page.get_by_role("button", name="Choose a place")
+        choose_a_place_locator.first.wait_for()
+        if choose_a_place_locator.count() > 1:
+            raise Exception("non-direct connection")
+        choose_a_place_locator.first.click()
         self.debug_screenshot(page, "after_choosing_a_seat")
         
         self.log("Waiting for loaded page (carriage view)...")
-        page.locator("text=direction").wait_for(state="visible")
+        # page.locator("text=direction").wait_for(state="visible")
         page.locator("text=Loading...").wait_for(state="hidden")
             
     def scrape_carriage(self, page: Page, carriage: Locator, class_sought: Class) -> List[str]:
@@ -150,7 +163,24 @@ class RouteOccupancyScraper:
             each tuple represents one ride-date-hour trio; and ride is a list of strings, each being one seat aria-label
         """
         with Stealth().use_sync(sync_playwright()) as p:
-            browser: Browser = p.chromium.launch(headless=True, args=["--disable-blink-features=AutomationControlled"])
+            # server_addr = os.getenv("NGROK_ADDRESS")
+            # server_user = os.getenv("SERV_USER")
+            # server_pass = os.getenv("SERV_PASS")
+            
+            # if not all([server_addr, server_user, server_pass]):
+            #     raise ValueError("Missing env variables for ngrok")
+
+            # proxy_cfg = ProxySettings({
+            #     "server": str(server_addr),
+            #     "username": str(server_user),
+            #     "password": str(server_pass)
+            # })
+            
+            browser: Browser = p.chromium.launch(
+                headless=True, 
+                args=["--disable-blink-features=AutomationControlled"],
+                # proxy=proxy_cfg
+            )
             context: BrowserContext = browser.new_context()
             context.tracing.start(screenshots=True, snapshots=True, sources=True)
             page: Page = context.new_page()
@@ -176,6 +206,7 @@ class RouteOccupancyScraper:
                     self.goto_carriage_page(page, i, class_sought)
 
                     self.log("Waiting for load of first carriage locator")
+                    # TODO - check for "We are unable to show available seats on the plan now" and abort
                     carriages_locator: Locator = page.locator('div[class*="Carriage_carriageBox_"][role="button"]')
                     carriages_locator.first.wait_for()
                     
@@ -199,13 +230,10 @@ class RouteOccupancyScraper:
             except PlaywrightTimeoutError as e:
                 self.log(f"PlaywrightTimneout while navigating for segment from: {station_from.name} to: {station_to.name}, err: {e}")
                 self.debug_screenshot(page, "timeout_error")
-                return None
             except SeatsSoldOutException as e:
                 self.log(f"Seats sold out in {e.class_sold_out}")
-                return None # tood return estimate load
             except Exception as e:
                 self.log(f"Exception; Failed to fetch data for segment from: {station_from.name} to: {station_to.name}, err: {e}")
-                return None
             finally:
                 self.debug_screenshot(page, "finally")
                 if self.is_debug:
@@ -214,6 +242,7 @@ class RouteOccupancyScraper:
                         seat_list = [seat for sublist in aria_list_list for seat in sublist]
                         f.write("\n".join(seat_list))
                 browser.close()
+                return cars_html_date_hour_trio_list
 
     def parse_occupancy_data(self, html_content: List[str], class_sought: Class) -> dict[str, int]:
         free_seats = 0
@@ -244,8 +273,14 @@ class RouteOccupancyScraper:
         to_from_data_class1 = self.fetch_route_data_for_all_hours(station_to, station_from, Class.FIRST)
         to_from_data_class2 = self.fetch_route_data_for_all_hours(station_to, station_from, Class.SECOND)
         
-        if not from_to_data_class1 or not from_to_data_class2 or not to_from_data_class1 or not to_from_data_class2:
-            return None
+        if not from_to_data_class1:
+            from_to_data_class1 = []
+        if not from_to_data_class2:
+            from_to_data_class2 = []
+        if not to_from_data_class1:
+            to_from_data_class1 = []
+        if not to_from_data_class2:
+            to_from_data_class2 = []
         
         aria_lists_from_to_class1 = [aria_list for aria_list, _, _ in from_to_data_class1]
         aria_lists_from_to_class2 = [aria_list for aria_list, _, _ in from_to_data_class2]
@@ -273,12 +308,10 @@ class RouteOccupancyScraper:
                                 event_time=datetime.now(timezone.utc).date())
         
 
-def create_stations_and_segment(sessionmaker: sessionmaker, from_str: str, to_str: str) -> None:
+def DEBUG_create_stations_and_segment(sessionmaker: sessionmaker, from_str: str, to_str: str) -> None:
     station_from = Station(name=from_str, latitude=1.0, longitude=1.0)
     station_to = Station(name=to_str, latitude=1.0, longitude=1.0)
-    
-    # Session = DBConnector().create_local_session(filename="scraped_data.db")
-    
+        
     with sessionmaker() as session:
         engine = session.get_bind()
         Base.metadata.create_all(engine)
@@ -303,7 +336,7 @@ def create_stations_and_segment(sessionmaker: sessionmaker, from_str: str, to_st
         session.add(segment)
         session.commit()
 
-def get_segment_from_station_names(from_str: str, to_str: str) -> RouteSegment:
+def DEBUG_get_segment_from_station_names(from_str: str, to_str: str) -> RouteSegment:
     Session = DBConnector().create_local_session(filename="scraped_data.db")
     
     with Session() as session:
@@ -331,17 +364,22 @@ def get_segment_from_station_names(from_str: str, to_str: str) -> RouteSegment:
 @time_function
 def main() -> int:
     sessionmaker = DBConnector().create_mysql_session()
-    # create_stations_and_segment(sessionmaker, "Warszawa Zach.", "Łódź Fabryczna")
-    # sessionmaker = DBConnector().create_local_session(filename="scraped_data.db")
-    route_segments = DBConnector().select_all_route_segments(sessionmaker)
+    route_segments = DBConnector().select_all_route_segments_not_scraped_today(sessionmaker)
 
-    scraper = RouteOccupancyScraper(base_url="https://ebilet.intercity.pl/", is_debug=True )
-    for segment in route_segments:
-        route_segment_data: Optional[RouteSegmentData] = scraper.fetch_data_and_build_route_segment_data(segment)
-        if route_segment_data:
-            DBConnector().insert_route_segment_data(sessionmaker, route_segment_data)
-    return 0
-
+    try:
+        scraper = RouteOccupancyScraper(base_url="https://ebilet.intercity.pl/", is_debug=True )
+        for segment in route_segments:
+            route_segment_data: Optional[RouteSegmentData] = scraper.fetch_data_and_build_route_segment_data(segment)
+            with open("backup.txt", "a", encoding="utf-8") as f:
+                f.write(f"{route_segment_data.__str__()}\n")
+            if route_segment_data:
+                DBConnector().insert_route_segment_data(sessionmaker, route_segment_data)
+        return 0
+    
+    except Exception as e:
+        print(f"DEBUG: ", e)
+        return 1
+            
 @time_function
 def main_no_log() -> int:
     sessionmaker = DBConnector().create_local_session(filename="scraped_data.db")
@@ -357,4 +395,3 @@ def main_no_log() -> int:
 
 if __name__ == "__main__":    
     main()
-    # main_no_log()
