@@ -1,7 +1,64 @@
-import { segmentAverage, stationFlow, occupancyBand } from '../utils/occupancy.js'
+import { useEffect, useState } from 'react'
+import { segmentAverage, occupancyBand } from '../utils/occupancy.js'
+import * as api from '../api/Api.js'
 
-function StationDetails({ station, network, exported, onToggleExport, onClose }) {
-  const { inflow, outflow, segmentsTouched } = stationFlow(station.id, network)
+function stationCoords(station) {
+  if (!station) return { lat: null, lng: null }
+  const loc = station.location
+  const lat = loc?.lat ?? loc?.y ?? station.latitude ?? null
+  const lng = loc?.lng ?? loc?.x ?? station.longitude ?? null
+  return { lat, lng }
+}
+
+function StationDetails({ stationId, exported, onToggleExport, onClose }) {
+  const [station, setStation] = useState(null)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setStation(null)
+    setError(null)
+    api.getNode(stationId)
+      .then((s) => { if (!cancelled) setStation(s) })
+      .catch((e) => { if (!cancelled) setError(e.message || 'Błąd pobierania') })
+    return () => { cancelled = true }
+  }, [stationId])
+
+  if (error) {
+    return (
+      <div className="details-panel">
+        <header>
+          <div>
+            <div className="kind">Stacja</div>
+            <h3>Błąd</h3>
+          </div>
+          <button className="icon-btn" onClick={onClose} aria-label="Close">×</button>
+        </header>
+        <p className="mono">{error}</p>
+      </div>
+    )
+  }
+
+  if (!station) {
+    return (
+      <div className="details-panel">
+        <header>
+          <div>
+            <div className="kind">Stacja</div>
+            <h3>Ładowanie…</h3>
+          </div>
+          <button className="icon-btn" onClick={onClose} aria-label="Close">×</button>
+        </header>
+      </div>
+    )
+  }
+
+  const { lat, lng } = stationCoords(station)
+  const coords =
+    typeof lat === 'number' && typeof lng === 'number'
+      ? `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+      : '—'
+
   return (
     <div className="details-panel">
       <header>
@@ -12,18 +69,10 @@ function StationDetails({ station, network, exported, onToggleExport, onClose })
         <button className="icon-btn" onClick={onClose} aria-label="Close">×</button>
       </header>
       <dl>
-        <dt>ID</dt>
-        <dd className="mono">{station.id}</dd>
+        <dt>Nazwa</dt>
+        <dd>{station.name}</dd>
         <dt>Współrzędne</dt>
-        <dd className="mono">
-          {station.latitude.toFixed(4)}, {station.longitude.toFixed(4)}
-        </dd>
-        <dt>Odcinki</dt>
-        <dd>{segmentsTouched}</dd>
-        <dt>Sumaryczny przyjazd</dt>
-        <dd>{inflow}</dd>
-        <dt>Sumaryczny odjazd</dt>
-        <dd>{outflow}</dd>
+        <dd className="mono">{coords}</dd>
       </dl>
       <label className="export-toggle">
         <input
@@ -89,13 +138,12 @@ export default function DetailsPanel({
   if (!selection) return null
 
   if (selection.type === 'station') {
-    const station = stations.find((s) => s.id === selection.id)
-    if (!station) return null
-    const key = `station:${station.id}`
+    const stationExists = stations.some((s) => s.id === selection.id)
+    if (!stationExists) return null
+    const key = `station:${selection.id}`
     return (
       <StationDetails
-        station={station}
-        network={network}
+        stationId={selection.id}
         exported={exportSet.has(key)}
         onToggleExport={(v) => onToggleExport(key, v)}
         onClose={onClose}
