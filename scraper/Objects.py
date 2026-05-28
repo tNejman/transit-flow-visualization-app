@@ -16,8 +16,6 @@ class Station(Base):
     longitude = Column(Float, nullable=False)
     
     def __init__(self, **kwargs):
-        # if 'id' not in kwargs:
-        #     kwargs['id'] = uuid.uuid4()
         super().__init__(**kwargs)
     
     def __str__(self) -> str:
