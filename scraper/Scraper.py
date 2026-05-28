@@ -25,18 +25,20 @@ class RouteOccupancyScraper:
         self.base_url: str = base_url
         self.is_debug: bool = is_debug
         self.scrape_datetime: str = datetime.today().strftime('%Y-%m-%d-%H..%M')
-        self.log_file_name: str = f"{self.scrape_datetime}-logs.txt"
+        self.log_file_name: str = f"logs/{self.scrape_datetime}-logs.txt"
 
     def log(self, mes: str) -> None:
         if self.is_debug:
             debug_mes = f"DEBUG: {mes}"
             print(debug_mes)
+            if not os.path.exists("logs"):
+                os.makedirs("logs")
             with open(self.log_file_name, "a", encoding="utf-8") as f:
                         f.write(f"{datetime.today().strftime('%Y-%m-%d-%H..%M')} - {debug_mes}\n")
             
     def debug_screenshot(self, page: Page, title: str, _counter: List[int] = [1]) -> None:
         if self.is_debug:
-            folder_name = f"scraper/scraper_screenshots/{self.scrape_datetime}"
+            folder_name = f"scraper_screenshots/{self.scrape_datetime}"
             if not os.path.exists(folder_name):
                 os.makedirs(folder_name)
             file_path = os.path.join(folder_name, f"{_counter[0]}-{title}.png")
@@ -368,9 +370,10 @@ def main() -> int:
 
     try:
         scraper = RouteOccupancyScraper(base_url="https://ebilet.intercity.pl/", is_debug=True )
+        scrape_datetime = datetime.today().strftime('%Y-%m-%d-%H..%M')
         for segment in route_segments:
             route_segment_data: Optional[RouteSegmentData] = scraper.fetch_data_and_build_route_segment_data(segment)
-            with open("backup.txt", "a", encoding="utf-8") as f:
+            with open(f"logs/backup-{scrape_datetime}.txt", "a", encoding="utf-8") as f:
                 f.write(f"{route_segment_data.__str__()}\n")
             if route_segment_data:
                 DBConnector().insert_route_segment_data(sessionmaker, route_segment_data)
