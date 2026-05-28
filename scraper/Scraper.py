@@ -21,7 +21,6 @@ class Class(Enum):
 
 class RouteOccupancyScraper:
     def __init__(self, base_url: str, is_debug: bool = False) -> None:
-        # self.batch_size: int = batch_size
         self.base_url: str = base_url
         self.is_debug: bool = is_debug
         self.scrape_datetime: str = datetime.today().strftime('%Y-%m-%d-%H..%M')
@@ -123,7 +122,6 @@ class RouteOccupancyScraper:
         self.debug_screenshot(page, "after_choosing_a_seat")
         
         self.log("Waiting for loaded page (carriage view)...")
-        # page.locator("text=direction").wait_for(state="visible")
         page.locator("text=Loading...").wait_for(state="hidden")
             
     def scrape_carriage(self, page: Page, carriage: Locator, class_sought: Class) -> List[str]:
@@ -143,12 +141,10 @@ class RouteOccupancyScraper:
         carriage.scroll_into_view_if_needed()
         self.debug_screenshot(page, "before_clicking_carriage")
         carriage.dispatch_event("click")
-        # page.wait_for_timeout(1000)
         
         iframe = page.frame_locator('iframe[title="Choose your seat on the plan"]')
         seat_buttons_locator = iframe.locator('button[class="seat-overlay-button"]')
         seat_buttons_locator.first.wait_for(state="attached")
-        # page.wait_for_timeout(500)
         aria_label_values: List[str] = [str(seat_button.get_attribute('aria-label')).lower() for seat_button in seat_buttons_locator.all()]
 
         occ_data_debug: dict[str, int] = {}
@@ -165,23 +161,9 @@ class RouteOccupancyScraper:
             each tuple represents one ride-date-hour trio; and ride is a list of strings, each being one seat aria-label
         """
         with Stealth().use_sync(sync_playwright()) as p:
-            # server_addr = os.getenv("NGROK_ADDRESS")
-            # server_user = os.getenv("SERV_USER")
-            # server_pass = os.getenv("SERV_PASS")
-            
-            # if not all([server_addr, server_user, server_pass]):
-            #     raise ValueError("Missing env variables for ngrok")
-
-            # proxy_cfg = ProxySettings({
-            #     "server": str(server_addr),
-            #     "username": str(server_user),
-            #     "password": str(server_pass)
-            # })
-            
             browser: Browser = p.chromium.launch(
                 headless=True, 
                 args=["--disable-blink-features=AutomationControlled"],
-                # proxy=proxy_cfg
             )
             context: BrowserContext = browser.new_context()
             context.tracing.start(screenshots=True, snapshots=True, sources=True)
@@ -208,14 +190,12 @@ class RouteOccupancyScraper:
                     self.goto_carriage_page(page, i, class_sought)
 
                     self.log("Waiting for load of first carriage locator")
-                    # TODO - check for "We are unable to show available seats on the plan now" and abort
                     carriages_locator: Locator = page.locator('div[class*="Carriage_carriageBox_"][role="button"]')
                     carriages_locator.first.wait_for()
                     
                     route_data_locator: Locator = page.locator('span[class=css-1yge7qx]')
                     date = route_data_locator.nth(0).inner_html()
                     hour = route_data_locator.nth(1).evaluate("el => el.childNodes[0].textContent.trim()")
-                    # event_datetime = self.build_event_time(date, hour)
                     self.log(f"Route date: {date}, departure at: {hour}")
                     
                     self.log("GRM META")
