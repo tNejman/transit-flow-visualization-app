@@ -8,7 +8,6 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
 import org.locationtech.jts.geom.Point;
 
-import com.transitflow.visualization_app.helper.HexStringToUUIDConverter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
