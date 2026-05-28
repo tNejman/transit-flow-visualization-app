@@ -2,8 +2,9 @@ import os
 import ssl
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import sessionmaker, selectinload
+from sqlalchemy.orm import sessionmaker, selectinload, joinedload
 from typing import List
+from datetime import date
 
 from Objects import RouteSegment, RouteSegmentData
 class DBConnector:
@@ -24,7 +25,7 @@ class DBConnector:
                 "cert_reqs": ssl.CERT_NONE
             }
         })
-        return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        return sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
     
     def create_local_session(self, filename: str):
         engine = create_engine(f"sqlite:///{os.path.abspath(filename)}", echo=True)
@@ -35,10 +36,39 @@ class DBConnector:
     def select_all_route_segments(self, sessionmaker: sessionmaker) -> List[RouteSegment]:
         with sessionmaker() as session:
             stmt = select(RouteSegment).options(
-                selectinload(RouteSegment.station_from),
-                selectinload(RouteSegment.station_to)
+                # selectinload(RouteSegment.station_from),
+                # selectinload(RouteSegment.station_to)
+                joinedload(RouteSegment.station_from),
+                joinedload(RouteSegment.station_to)
             )
             
+            route_segments = session.scalars(stmt).all()
+            return route_segments
+    
+    def select_all_route_segments_not_scraped_today(self, sessionmaker: sessionmaker) -> List[RouteSegment]:
+        with sessionmaker() as session:
+            # has_today_data = select(RouteSegmentData.id).where(
+            #     RouteSegmentData.event_time == date.today())
+            
+            
+            # stmt = select(RouteSegment).where(
+            #     ~RouteSegment.id.in_(has_today_data)).options(
+            #     # selectinload(RouteSegment.station_from),
+            #     # selectinload(RouteSegment.station_to)
+            #     joinedload(RouteSegment.station_from),
+            #     joinedload(RouteSegment.station_to)
+            # )
+            
+            today = date.today()
+            stmt = select(RouteSegment).where(
+                ~select(RouteSegmentData.id).where(
+                    RouteSegmentData.route_segment_id == RouteSegment.id,
+                    RouteSegmentData.event_time == today
+                ).exists()
+            ).options(
+                joinedload(RouteSegment.station_from),
+                joinedload(RouteSegment.station_to)
+            )
             route_segments = session.scalars(stmt).all()
             return route_segments
             

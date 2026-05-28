@@ -44,12 +44,7 @@ class RouteSegment(Base):
         super().__init__(**kwargs)
         
         if station_from and station_to:
-            if station_from.id > station_to.id:
-                self.station_from = station_to
-                self.station_to = station_from
-            else:
-                self.station_from = station_from
-                self.station_to = station_to
+            self.station_from, self.station_to = sorted([station_from, station_to], key=lambda s: s.id)
         else:
             raise Exception("Missing station in c-tor")
         
@@ -75,7 +70,7 @@ class RouteSegmentData(Base):
         return (
             f"<RouteSegmentData(id: {id}, "
             f"from: {self.route_segment.station_from.name}, "
-            f"to: {self.route_segment.station_from.name}, "
+            f"to: {self.route_segment.station_to.name}, "
             f"occ_A: {self.occupancy_from_to}↕{self.occupancy_to_from}, "
-            f"snapshot_time: {self.snapshot_time:%Y-%m-%d %H:%M:S}"
+            f"snapshot_time: {self.snapshot_time:%Y-%m-%d %H:%M:%S}"
             f"event_time: {self.event_time:%Y-%m-%d}]>")
