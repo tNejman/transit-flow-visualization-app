@@ -11,7 +11,9 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 COPY scraper/requirements.txt ./scraper/
 
 RUN uv venv .venv --python 3.12 && \
-    uv pip install -r scraper/requirements.txt
+    uv pip install -r scraper/requirements.txt && \
+    uv pip install curl_cffi && \
+    uv pip install pymysql
 
 RUN playwright install --with-deps
 
