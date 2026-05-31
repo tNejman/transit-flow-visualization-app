@@ -15,6 +15,7 @@ export default function Sidebar({
   filterPick,
   onFilterPickChange,
   onAddStation,
+  onShowAllStations,
   onRemoveStation,
 }) {
   return (
@@ -30,6 +31,15 @@ export default function Sidebar({
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
+        <div className="button-group">
+          <button
+            className="full"
+            onClick={onShowAllStations}
+            disabled={availableStations.length === 0}
+          >
+            Wyświetl wszystkie
+          </button>
+        </div>
         <button
           className="primary full"
           onClick={onAddStation}
