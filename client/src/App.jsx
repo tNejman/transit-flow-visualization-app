@@ -72,6 +72,18 @@ export default function App() {
     })
   }, [])
 
+  const handleShowAllStations = useCallback(() => {
+  setDisplayedIds((prev) => {
+    const next = new Set(prev)
+
+    stations.forEach((station) => {
+      next.add(station.id)
+    })
+
+    return next
+  })
+}, [stations])
+
   const visibleStations = useMemo(
     () => stations.filter((s) => displayedIds.has(s.id)),
     [stations, displayedIds],
@@ -135,6 +147,7 @@ export default function App() {
         filterPick={filterPick}
         onFilterPickChange={setFilterPick}
         onAddStation={handleAddStation}
+        onShowAllStations={handleShowAllStations}
         onRemoveStation={handleRemoveStation}
       />
 
