@@ -8,7 +8,7 @@ from sqlalchemy import Float
 Base = declarative_base()
 
 class Station(Base):
-    __tablename__ = 'Stations'
+    __tablename__ = 'stations'
 
     id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False, unique=True)
@@ -27,14 +27,14 @@ class Station(Base):
         )
     
 class RouteSegment(Base):
-    __tablename__ = 'Route_Segments'
+    __tablename__ = 'route_segments'
     __table_args__ = (
         UniqueConstraint('station_id_from', 'station_id_to', name='unique_route_segment_stations'),
     )
 
     id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    station_id_from = Column(Uuid(as_uuid=True), ForeignKey('Stations.id'), nullable=False)
-    station_id_to = Column(Uuid(as_uuid=True), ForeignKey('Stations.id'), nullable=False)
+    station_id_from = Column(Uuid(as_uuid=True), ForeignKey('stations.id'), nullable=False)
+    station_id_to = Column(Uuid(as_uuid=True), ForeignKey('stations.id'), nullable=False)
     station_from = relationship("Station", foreign_keys=[station_id_from])
     station_to = relationship("Station", foreign_keys=[station_id_to])
 
@@ -54,10 +54,10 @@ class RouteSegment(Base):
         )
 
 class RouteSegmentData(Base):
-    __tablename__ = 'Route_Segment_Data'
+    __tablename__ = 'route_segment_data'
 
     id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    route_segment_id = Column(Uuid(as_uuid=True), ForeignKey('Route_Segments.id'), nullable=False)
+    route_segment_id = Column(Uuid(as_uuid=True), ForeignKey('route_segments.id'), nullable=False)
     route_segment = relationship("RouteSegment")
     occupancy_from_to = Column(Integer, nullable=False)
     occupancy_to_from = Column(Integer, nullable=False)
