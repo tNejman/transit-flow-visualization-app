@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.Point;
 
 
@@ -28,6 +29,7 @@ public class Station {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Type(HexStringToUUIDUserType.class)
+    @Column(name = "id", length = 32, columnDefinition = "char(32)")
     @EqualsAndHashCode.Include
     private UUID id;
 
