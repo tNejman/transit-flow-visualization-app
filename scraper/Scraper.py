@@ -185,27 +185,30 @@ class RouteOccupancyScraper:
                 buy_tikcet_locator.first.wait_for()
                 
                 for i in range(buy_tikcet_locator.count()):
-                    page.goto(connection_list_url, wait_until="domcontentloaded", timeout=45000)
-                    
-                    self.goto_carriage_page(page, i, class_sought)
+                    try:
+                        page.goto(connection_list_url, wait_until="domcontentloaded", timeout=45000)
+                        
+                        self.goto_carriage_page(page, i, class_sought)
 
-                    self.log("Waiting for load of first carriage locator")
-                    carriages_locator: Locator = page.locator('div[class*="Carriage_carriageBox_"][role="button"]')
-                    carriages_locator.first.wait_for()
-                    
-                    route_data_locator: Locator = page.locator('span[class=css-1yge7qx]')
-                    date = route_data_locator.nth(0).inner_html()
-                    hour = route_data_locator.nth(1).evaluate("el => el.childNodes[0].textContent.trim()")
-                    self.log(f"Route date: {date}, departure at: {hour}")
-                    
-                    self.log("GRM META")
-                    loc = page.locator('li[class*="Grm_grmMetaItem_"]')
-                    loc.first.wait_for()
-                    self.log(f"Train info: {loc.first.inner_text()}")
-            
-                    for i in range(carriages_locator.count()):
-                        aria_label_values = self.scrape_carriage(page, carriages_locator.nth(i), class_sought)
-                        cars_html_date_hour_trio_list.append((aria_label_values, date, str(hour)))
+                        self.log("Waiting for load of first carriage locator")
+                        carriages_locator: Locator = page.locator('div[class*="Carriage_carriageBox_"][role="button"]')
+                        carriages_locator.first.wait_for()
+                        
+                        route_data_locator: Locator = page.locator('span[class=css-1yge7qx]')
+                        date = route_data_locator.nth(0).inner_html()
+                        hour = route_data_locator.nth(1).evaluate("el => el.childNodes[0].textContent.trim()")
+                        self.log(f"Route date: {date}, departure at: {hour}")
+                        
+                        self.log("GRM META")
+                        loc = page.locator('li[class*="Grm_grmMetaItem_"]')
+                        loc.first.wait_for()
+                        self.log(f"Train info: {loc.first.inner_text()}")
+                
+                        for i in range(carriages_locator.count()):
+                            aria_label_values = self.scrape_carriage(page, carriages_locator.nth(i), class_sought)
+                            cars_html_date_hour_trio_list.append((aria_label_values, date, str(hour)))
+                    except Exception as e:
+                        self.log(f"Exception (carriage): {e}")
                         
                 return cars_html_date_hour_trio_list
 
