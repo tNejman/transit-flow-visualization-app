@@ -1,10 +1,17 @@
 package com.transitflow.visualization_app.model;
 
+import java.sql.Types;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.Point;
 
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +28,8 @@ public class Station {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Type(HexStringToUUIDUserType.class)
+    @Column(name = "id", length = 32, columnDefinition = "char(32)")
     @EqualsAndHashCode.Include
     private UUID id;
 

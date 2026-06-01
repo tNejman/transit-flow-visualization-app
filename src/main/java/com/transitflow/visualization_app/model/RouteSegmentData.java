@@ -4,6 +4,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,10 +28,12 @@ public class RouteSegmentData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", length = 32, columnDefinition = "char(32)")
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "route_segment_id", nullable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
     private RouteSegment routeSegment;
 
     @Column(nullable = false)

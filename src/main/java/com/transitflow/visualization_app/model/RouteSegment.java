@@ -2,6 +2,11 @@ package com.transitflow.visualization_app.model;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -30,15 +35,17 @@ public class RouteSegment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Type(HexStringToUUIDUserType.class)
+    @Column(name = "id", length = 32, columnDefinition = "char(32)")
     @EqualsAndHashCode.Include
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "station_id_from", nullable = false)
     // StationId from should always be smaller than stationId to, to avoid duplicates in the database
     private Station stationFrom;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "station_id_to", nullable = false)
     // StationId To should always be larger than stationId from, to avoid duplicates in the database
     private Station stationTo;
